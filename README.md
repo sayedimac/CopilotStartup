@@ -38,16 +38,23 @@ The web app will be available at `http://localhost:5000` (or the URL shown in th
 
 ### Run the Azure Functions (API)
 
-If you have Azure Functions Core Tools installed:
+First, set up the local settings file:
 
 ```bash
 cd src/api
+cp local.settings.json.example local.settings.json
+```
+
+If you have Azure Functions Core Tools installed:
+
+```bash
 func start
 ```
 
-Or run directly with .NET:
+Or run directly with .NET (requires Azure Functions Core Tools):
 
 ```bash
+cd ..
 dotnet run --project src/api
 ```
 
