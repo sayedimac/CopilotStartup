@@ -1,7 +1,7 @@
 messages:
   - role: user
     content: >-
-      what is new in GitHub Copilot from a documentation and COpolot
+      what is new in GitHub Copilot from a documentation and Copilot
       Instructions point of view?
 
       I am looking for Folder, Repo and GitHub ORG level instructions
