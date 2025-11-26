@@ -6,3 +6,6 @@ messages:
 
       I am looking for Folder, Repo and GitHub ORG level instructions
 model: openai/gpt-4o
+modelParameters:
+  temperature: 0.45
+  top_p: 0.5
