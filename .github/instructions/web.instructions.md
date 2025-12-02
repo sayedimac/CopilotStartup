@@ -1,5 +1,5 @@
 ---
-applyTo: "src/api"web
+applyTo: "src/web"
 ---
 
 - This is a Dotnet 8.0 Blazor WASM app
