@@ -30,9 +30,9 @@ public:
     Server(const Server&) = delete;
     Server& operator=(const Server&) = delete;
 
-    // Allow move operations
-    Server(Server&&) noexcept = default;
-    Server& operator=(Server&&) noexcept = default;
+    // Custom move operations to maintain invariants
+    Server(Server&& other) noexcept;
+    Server& operator=(Server&& other) noexcept;
 
     /**
      * @brief Start the HTTP server

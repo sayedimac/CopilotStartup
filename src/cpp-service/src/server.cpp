@@ -57,15 +57,16 @@ bool Server::start() {
 
     std::cout << "Starting server on " << host_ << ":" << port_ << std::endl;
     
-    running_ = true;
-    
     // listen() is blocking, so in production you might want to run this in a separate thread
-    if (!server_->listen(host_, port_)) {
-        running_ = false;
+    // Set running_ to true only if listen starts successfully
+    bool success = server_->listen(host_, port_);
+    
+    if (!success) {
         std::cerr << "Failed to start server on " << host_ << ":" << port_ << std::endl;
         return false;
     }
-
+    
+    running_ = true;
     return true;
 }
 
@@ -81,6 +82,34 @@ void Server::stop() {
 
 bool Server::isRunning() const noexcept {
     return running_;
+}
+
+Server::Server(Server&& other) noexcept
+    : host_(std::move(other.host_))
+    , port_(other.port_)
+    , server_(std::move(other.server_))
+    , running_(other.running_)
+{
+    // Ensure moved-from object is in a valid state
+    other.running_ = false;
+}
+
+Server& Server::operator=(Server&& other) noexcept {
+    if (this != &other) {
+        // Stop this server if running
+        if (running_) {
+            stop();
+        }
+        
+        host_ = std::move(other.host_);
+        port_ = other.port_;
+        server_ = std::move(other.server_);
+        running_ = other.running_;
+        
+        // Ensure moved-from object is in a valid state
+        other.running_ = false;
+    }
+    return *this;
 }
 
 } // namespace webservice

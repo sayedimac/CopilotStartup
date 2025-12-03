@@ -43,9 +43,28 @@ TEST_F(ServerTest, GettersReturnCorrectValues) {
 
 TEST_F(ServerTest, MoveConstructorWorks) {
     Server server1("localhost", 8082);
+    EXPECT_FALSE(server1.isRunning());
+    
     Server server2(std::move(server1));
     EXPECT_EQ(server2.getHost(), "localhost");
     EXPECT_EQ(server2.getPort(), 8082);
+    EXPECT_FALSE(server2.isRunning());
+    
+    // Moved-from object should be in a valid state (not running)
+    EXPECT_FALSE(server1.isRunning());
+}
+
+TEST_F(ServerTest, MoveAssignmentWorks) {
+    Server server1("localhost", 8082);
+    Server server2("127.0.0.1", 8083);
+    
+    server2 = std::move(server1);
+    EXPECT_EQ(server2.getHost(), "localhost");
+    EXPECT_EQ(server2.getPort(), 8082);
+    EXPECT_FALSE(server2.isRunning());
+    
+    // Moved-from object should be in a valid state (not running)
+    EXPECT_FALSE(server1.isRunning());
 }
 
 } // namespace webservice::tests
