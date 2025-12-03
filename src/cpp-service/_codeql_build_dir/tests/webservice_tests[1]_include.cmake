@@ -1,0 +1,5 @@
+if(EXISTS "/home/runner/work/CopilotStartup/CopilotStartup/src/cpp-service/_codeql_build_dir/tests/webservice_tests[1]_tests.cmake")
+  include("/home/runner/work/CopilotStartup/CopilotStartup/src/cpp-service/_codeql_build_dir/tests/webservice_tests[1]_tests.cmake")
+else()
+  add_test(webservice_tests_NOT_BUILT webservice_tests_NOT_BUILT)
+endif()
