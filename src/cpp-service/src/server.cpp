@@ -57,16 +57,21 @@ bool Server::start() {
 
     std::cout << "Starting server on " << host_ << ":" << port_ << std::endl;
     
-    // listen() is blocking, so in production you might want to run this in a separate thread
-    // Set running_ to true only if listen starts successfully
+    // Set running flag before blocking call to indicate server is active
+    running_ = true;
+    
+    // Note: listen() is a blocking call that runs until stop() is called or an error occurs
+    // In production, you may want to run this in a separate thread for non-blocking operation
     bool success = server_->listen(host_, port_);
+    
+    // Server has stopped (either gracefully or due to error)
+    running_ = false;
     
     if (!success) {
         std::cerr << "Failed to start server on " << host_ << ":" << port_ << std::endl;
         return false;
     }
     
-    running_ = true;
     return true;
 }
 

@@ -64,9 +64,21 @@ void handleEcho(const httplib::Request& req, httplib::Response& res) {
         return;
     }
 
+    // Basic validation: check if body starts with '{' or '[' for JSON
+    // This is a simple check; for production, use a proper JSON library
+    const std::string& body = req.body;
+    bool looksLikeJson = (!body.empty() && (body[0] == '{' || body[0] == '['));
+    
+    if (!looksLikeJson) {
+        res.status = 400;
+        res.set_content(R"({"error": "Request body must be valid JSON"})", "application/json");
+        return;
+    }
+
     // Echo back the received body in a JSON wrapper
+    // Since we validated it looks like JSON, it's safer to embed
     std::ostringstream json;
-    json << R"({"received": )" << req.body << R"(, "timestamp": ")" 
+    json << R"({"received": )" << body << R"(, "timestamp": ")" 
          << std::chrono::system_clock::now().time_since_epoch().count() 
          << R"("})";
     

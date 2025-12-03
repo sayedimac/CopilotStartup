@@ -45,6 +45,15 @@ TEST_F(HandlersTest, EchoHandlerReturnsErrorOnEmptyBody) {
     EXPECT_THAT(res_.body, ::testing::HasSubstr("error"));
 }
 
+TEST_F(HandlersTest, EchoHandlerReturnsErrorOnInvalidJson) {
+    req_.body = "not valid json";
+    
+    handleEcho(req_, res_);
+    
+    EXPECT_EQ(res_.status, 400);
+    EXPECT_THAT(res_.body, ::testing::HasSubstr("valid JSON"));
+}
+
 TEST_F(HandlersTest, TimeHandlerReturnsValidTime) {
     handleTime(req_, res_);
     
