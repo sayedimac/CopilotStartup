@@ -67,3 +67,7 @@ Testing/
 # Profiling
 *.prof
 gmon.out
+
+# CodeQL artifacts
+_codeql_build_dir/
+cpp-service
