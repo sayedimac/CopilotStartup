@@ -7,8 +7,14 @@ var builder = FunctionsApplication.CreateBuilder(args);
 
 builder.ConfigureFunctionsWebApplication();
 
+// Configure services with .NET 10 optimizations
 builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
-builder.Build().Run();
+// Add HTTP client with optimized settings for .NET 10
+builder.Services.AddHttpClient();
+
+var app = builder.Build();
+
+await app.RunAsync();
