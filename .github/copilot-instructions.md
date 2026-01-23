@@ -1,12 +1,12 @@
-# CopilotTest — quickstart (Blazor WASM + .NET 8 Functions)
+# CopilotTest — quickstart (Blazor WASM + .NET 10 Functions)
 
 Purpose
-- Minimal setup for a Blazor WebAssembly static web app (dotnet 8) in src/web
-- .NET 8 Azure Functions backend in src/api
+- Minimal setup for a Blazor WebAssembly static web app (dotnet 10) in src/web
+- .NET 10 Azure Functions backend in src/api
 - Ready for local dev and GitHub Actions deploy to Azure Static Web Apps
 
 Prerequisites
-- .NET 8 SDK installed
+- .NET 10 SDK installed
 - (For Functions) Azure Functions Core Tools v4+ and dotnet-isolated support
 - Git, optional: Azure CLI, VS Code
 
@@ -22,11 +22,11 @@ Create projects (from repo root)
 
 2. Create Blazor WASM client
      mkdir -p src
-     dotnet new blazorwasm -o src/web -f net8.0
+     dotnet new blazorwasm -o src/web -f net10.0
 
 3. Create Azure Functions (dotnet-isolated) — requires Func Core Tools
      # from repo root
-     func init src/api --worker-runtime dotnet-isolated --target-framework net8.0
+     func init src/api --worker-runtime dotnet-isolated --target-framework net10.0
      cd src/api
      func new --template "HTTP trigger" --name HttpTrigger --authlevel "anonymous"
 
@@ -65,7 +65,7 @@ jobs:
             - name: Setup .NET
                 uses: actions/setup-dotnet@v4
                 with:
-                    dotnet-version: '8.0.x'
+                    dotnet-version: '10.0.x'
             - name: Build
                 run: dotnet build --configuration Release
             - name: Deploy to Azure Static Web Apps
@@ -80,9 +80,11 @@ jobs:
 
 Notes & best practices
 - Keep APIs lightweight (HTTP triggers) when used as backend for a static web app.
-- Prefer .NET isolated Functions for .NET 8 support.
+- Prefer .NET isolated Functions for .NET 10 support.
 - Use CI to build both projects so the deployment artifact matches local behavior.
 - Add a root README, .gitignore, and a solution-level launch/debug configs as needed.
+- Leverage .NET 10 performance improvements and new language features (C# 13).
+- Use modern minimal APIs and top-level statements where appropriate.
 
 If you want, I can:
 - produce a sample HTTP trigger function code
