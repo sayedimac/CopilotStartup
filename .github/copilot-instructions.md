@@ -83,6 +83,8 @@ Notes & best practices
 - Prefer .NET isolated Functions for .NET 10 support.
 - Use CI to build both projects so the deployment artifact matches local behavior.
 - Add a root README, .gitignore, and a solution-level launch/debug configs as needed.
+- Leverage .NET 10 performance improvements and new language features (C# 13).
+- Use modern minimal APIs and top-level statements where appropriate.
 
 If you want, I can:
 - produce a sample HTTP trigger function code

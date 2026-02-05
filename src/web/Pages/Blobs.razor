@@ -1,0 +1,96 @@
+@page "/blobs"
+@inject HttpClient Http
+
+<PageTitle>Blob Storage</PageTitle>
+
+<h1>Azure Blob Storage Browser</h1>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <label for="containerName" class="form-label">Container Name:</label>
+        <input type="text" id="containerName" class="form-control" @bind="containerName" placeholder="Enter container name" />
+    </div>
+    <div class="col-md-6 d-flex align-items-end">
+        <button class="btn btn-primary" @onclick="LoadBlobs">Load Blobs</button>
+    </div>
+</div>
+
+@if (loading)
+{
+    <p><em>Loading blobs...</em></p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
+else if (blobData != null)
+{
+    <div class="card">
+        <div class="card-header">
+            <h4>Container: @blobData.ContainerName</h4>
+            <p class="mb-0">Total Blobs: @blobData.BlobCount</p>
+        </div>
+        <div class="card-body">
+            @if (blobData.Blobs.Any())
+            {
+                <ul class="list-group">
+                    @foreach (var blob in blobData.Blobs)
+                    {
+                        <li class="list-group-item">@blob</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p>No blobs found in this container.</p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private string containerName = "test-container";
+    private BlobData? blobData;
+    private bool loading = false;
+    private string? errorMessage;
+
+    private async Task LoadBlobs()
+    {
+        if (string.IsNullOrWhiteSpace(containerName))
+        {
+            errorMessage = "Please enter a container name";
+            return;
+        }
+
+        loading = true;
+        errorMessage = null;
+        blobData = null;
+
+        try
+        {
+            var apiUrl = $"/api/blobs/{containerName}";
+            blobData = await Http.GetFromJsonAsync<BlobData>(apiUrl);
+        }
+        catch (HttpRequestException ex)
+        {
+            errorMessage = $"Error loading blobs: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Unexpected error: {ex.Message}";
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private class BlobData
+    {
+        public string ContainerName { get; set; } = string.Empty;
+        public int BlobCount { get; set; }
+        public List<string> Blobs { get; set; } = new();
+    }
+}
