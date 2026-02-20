@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/web/web.csproj" />
+  </Folder>
+  <Folder Name="/src/api/">
+    <Project Path="src/api/CopilotStartup.Api.csproj" />
+  </Folder>
+</Solution>

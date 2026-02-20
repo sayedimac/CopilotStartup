@@ -1,0 +1,112 @@
+@page "/"
+@using CopilotStartup.Web.Models
+@using CopilotStartup.Web.Services
+@inject ChatService ChatService
+
+<PageTitle>Copilot Chat</PageTitle>
+
+<div class="chat-container">
+    <h1 class="chat-title">Copilot Chat</h1>
+
+    <div class="chat-messages" id="chatMessages">
+        @if (_messages.Count == 0)
+        {
+            <div class="chat-empty">
+                <p>Send a message to get started.</p>
+            </div>
+        }
+        @foreach (var message in _messages)
+        {
+            <div class="chat-message @(message.IsUser ? "user" : "bot")">
+                <div class="chat-bubble">@message.Text</div>
+                <div class="chat-timestamp">@message.Timestamp.ToLocalTime().ToString("HH:mm")</div>
+            </div>
+        }
+        @if (_isLoading)
+        {
+            <div class="chat-message bot">
+                <div class="chat-bubble typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="chat-error">@_errorMessage</div>
+    }
+
+    <div class="chat-input-row">
+        <input class="chat-input"
+               type="text"
+               placeholder="Type a message…"
+               @bind="_inputText"
+               @bind:event="oninput"
+               @onkeyup="HandleKeyUp"
+               disabled="@_isLoading"
+               aria-label="Message input" />
+        <button class="chat-send-btn"
+                @onclick="SendMessage"
+                disabled="@(_isLoading || string.IsNullOrWhiteSpace(_inputText))"
+                aria-label="Send message">
+            Send
+        </button>
+    </div>
+</div>
+
+@code {
+    private readonly List<ChatMessage> _messages = new();
+    private string _inputText = string.Empty;
+    private string? _conversationId;
+    private bool _isLoading;
+    private string? _errorMessage;
+
+    private async Task SendMessage()
+    {
+        var text = _inputText.Trim();
+        if (string.IsNullOrWhiteSpace(text)) return;
+
+        _messages.Add(new ChatMessage { Text = text, IsUser = true });
+        _inputText = string.Empty;
+        _isLoading = true;
+        _errorMessage = null;
+
+        try
+        {
+            var response = await ChatService.SendMessageAsync(new ChatRequest
+            {
+                Message = text,
+                ConversationId = _conversationId
+            });
+
+            if (response is not null)
+            {
+                _conversationId = response.ConversationId;
+                _messages.Add(new ChatMessage
+                {
+                    Text = response.Reply,
+                    IsUser = false,
+                    Timestamp = response.Timestamp
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task HandleKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SendMessage();
+        }
+    }
+}
+

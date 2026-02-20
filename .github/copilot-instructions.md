@@ -1,90 +1,131 @@
-# CopilotTest — quickstart (Blazor WASM + .NET 10 Functions)
+# CopilotStartup — Chatbot Template (Blazor WASM + .NET Functions)
 
-Purpose
-- Minimal setup for a Blazor WebAssembly static web app (dotnet 10) in src/web
-- .NET 10 Azure Functions backend in src/api
-- Ready for local dev and GitHub Actions deploy to Azure Static Web Apps
+## Purpose
 
-Prerequisites
-- .NET 10 SDK installed
-- (For Functions) Azure Functions Core Tools v4+ and dotnet-isolated support
-- Git, optional: Azure CLI, VS Code
+Generic starter template for a chatbot web application:
 
-Recommended folder layout (root of repo)
-- src/
-    - web/    ← Blazor WebAssembly app
-    - api/    ← Azure Functions (.NET 10 isolated)
+- **Frontend**: Blazor WebAssembly (SPA) in `src/web` — .NET 10
+- **Backend**: Azure Functions isolated worker in `src/api` — .NET 9
+- **Hosting**: Azure Static Web Apps (the `/api` route is automatically routed to the Functions app)
+- **Tests**: Playwright end-to-end tests in `tests/playwright`
 
-Create projects (from repo root)
-1. Create solution
-     dotnet new sln -n CopilotTest
-     
+The template ships with a simple echo bot. Replace the reply logic in `src/api/ChatFunction.cs`
+with your preferred AI/LLM integration (e.g. Azure OpenAI, OpenAI, Semantic Kernel, etc.).
 
-2. Create Blazor WASM client
-     mkdir -p src
-     dotnet new blazorwasm -o src/web -f net10.0
+---
 
-3. Create Azure Functions (dotnet-isolated) — requires Func Core Tools
-     # from repo root
-     func init src/api --worker-runtime dotnet-isolated --target-framework net10.0
-     cd src/api
-     func new --template "HTTP trigger" --name HttpTrigger --authlevel "anonymous"
+## Project layout
 
-4. Add projects to solution
-     dotnet sln add src/web/*.csproj src/api/*.csproj
+```
+CopilotStartup/
+├── src/
+│   ├── web/          ← Blazor WASM chatbot frontend (.NET 10)
+│   │   ├── Models/
+│   │   ├── Pages/
+│   │   └── Services/
+│   └── api/          ← Azure Functions chat backend (.NET 9 isolated)
+│       └── Models/
+├── tests/
+│   └── playwright/   ← Playwright API + UI tests (TypeScript)
+├── .github/
+│   ├── copilot-instructions.md
+│   ├── instructions/
+│   │   ├── web.instructions.md
+│   │   └── api.instructions.md
+│   ├── prompts/
+│   │   └── add-llm-integration.prompt.md
+│   └── workflows/
+│       └── azure-static-web-apps.yml
+├── CopilotStartup.sln
+└── README.md
+```
 
-Local dev
-- Build everything:
-    dotnet build
+---
 
-- Run web locally (serves the static site)
-    dotnet run --project src/web
+## Prerequisites
 
-- Run functions locally (from src/api)
-    cd src/api
-    func start
+- .NET 10 SDK
+- .NET 9 SDK (for the Functions project)
+- Azure Functions Core Tools v4+
+- Node.js 20+ (for Playwright tests)
+- Git
 
-- Tip: set CORS/local endpoints as needed in local.settings.json for testing.
+---
 
-GitHub Actions (Azure Static Web Apps) — minimal workflow
-- Place this workflow in .github/workflows/azure-static-web-apps.yml
-- It assumes you create an Azure Static Web App and put the deployment token in repository secrets as AZURE_STATIC_WEB_APPS_API_TOKEN
+## Local development
 
-name: Azure Static Web Apps CI/CD
+### Run the API
 
-on:
-    push:
-        branches:
-            - main
+```bash
+cd src/api
+func start
+# Functions will be available at http://localhost:7071/api/chat
+```
 
-jobs:
-    build_and_deploy_job:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - name: Setup .NET
-                uses: actions/setup-dotnet@v4
-                with:
-                    dotnet-version: '10.0.x'
-            - name: Build
-                run: dotnet build --configuration Release
-            - name: Deploy to Azure Static Web Apps
-                uses: Azure/static-web-apps-deploy@v1
-                with:
-                    azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
-                    repo_token: ${{ secrets.GITHUB_TOKEN }}
-                    action: "upload"
-                    app_location: "src/web"
-                    api_location: "src/api"
-                    output_location: "wwwroot"
+### Run the web app
 
-Notes & best practices
-- Keep APIs lightweight (HTTP triggers) when used as backend for a static web app.
-- Prefer .NET isolated Functions for .NET 10 support.
-- Use CI to build both projects so the deployment artifact matches local behavior.
-- Add a root README, .gitignore, and a solution-level launch/debug configs as needed.
+```bash
+cd src/web
+dotnet run
+# App will be available at http://localhost:5000
+```
 
-If you want, I can:
-- produce a sample HTTP trigger function code
-- produce a ready-to-use GitHub Actions file with exact Azure Static Web Apps action configuration
-- create solution and project files (commands/scripts) to run locally
+Configure the web app to call the local API by setting `ApiBaseUrl` in
+`wwwroot/appsettings.Development.json`:
+
+```json
+{
+  "ApiBaseUrl": "http://localhost:7071"
+}
+```
+
+### Run Playwright tests
+
+```bash
+# Install browsers once
+cd tests/playwright
+npx playwright install chromium
+
+# Run all tests (requires both API and web running locally)
+npm test
+
+# Run only API tests
+API_BASE_URL=http://localhost:7071 npx playwright test --grep "Chat API"
+```
+
+---
+
+## GitHub Copilot features used
+
+| Feature | Location |
+|---|---|
+| Repository-level instructions | `.github/copilot-instructions.md` |
+| Folder-scoped instructions | `.github/instructions/*.instructions.md` |
+| Reusable prompt file | `.github/prompts/add-llm-integration.prompt.md` |
+| CI/CD workflow | `.github/workflows/azure-static-web-apps.yml` |
+
+---
+
+## GitHub Actions deployment
+
+The workflow in `.github/workflows/azure-static-web-apps.yml` builds and deploys
+to Azure Static Web Apps on every push to `main`.
+
+**Required secret**: `AZURE_STATIC_WEB_APPS_API_TOKEN`
+
+---
+
+## Adding an LLM integration
+
+Use the Copilot prompt in `.github/prompts/add-llm-integration.prompt.md` to guide
+GitHub Copilot in replacing the echo reply with a real AI backend.
+
+---
+
+## Notes & best practices
+
+- Keep `local.settings.json` out of source control — it may contain secrets.
+- Add API keys and connection strings as environment variables / Azure app settings.
+- The Blazor app reads `ApiBaseUrl` at runtime; this is empty in production (same-origin proxy).
+- Prefer .NET isolated Functions for .NET 9/10 support.
+- Add unit tests for the Functions using `Microsoft.Azure.Functions.Worker.Tests`.
