@@ -1,0 +1,160 @@
+@page "/chat"
+@inject HttpClient Http
+
+<PageTitle>Chat</PageTitle>
+
+<h1>Chat with API</h1>
+
+<div class="chat-container">
+    <div class="messages">
+        @foreach (var message in messages)
+        {
+            <div class="message @(message.IsUser ? "user" : "api")">
+                <strong>@(message.IsUser ? "You" : "API"):</strong> @message.Text
+            </div>
+        }
+    </div>
+
+    <div class="input-area">
+        <input type="text" @bind="currentMessage" @bind:event="oninput" 
+               @onkeypress="HandleKeyPress" placeholder="Type your message..." 
+               disabled="@isLoading" />
+        <button @onclick="SendMessage" disabled="@(isLoading || string.IsNullOrWhiteSpace(currentMessage))">
+            @(isLoading ? "Sending..." : "Send")
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="error">@errorMessage</div>
+    }
+</div>
+
+<style>
+    .chat-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .messages {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 15px;
+        height: 400px;
+        overflow-y: auto;
+        margin-bottom: 15px;
+        background-color: #f9f9f9;
+    }
+    .message {
+        padding: 10px;
+        margin: 5px 0;
+        border-radius: 8px;
+    }
+    .message.user {
+        background-color: #007bff;
+        color: white;
+        margin-left: 50px;
+    }
+    .message.api {
+        background-color: #e9ecef;
+        margin-right: 50px;
+    }
+    .input-area {
+        display: flex;
+        gap: 10px;
+    }
+    .input-area input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .input-area button {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .input-area button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+    .error {
+        color: red;
+        margin-top: 10px;
+    }
+</style>
+
+@code {
+    private List<ChatMessage> messages = new();
+    private string currentMessage = string.Empty;
+    private bool isLoading = false;
+    private string errorMessage = string.Empty;
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(currentMessage))
+        {
+            await SendMessage();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(currentMessage) || isLoading)
+            return;
+
+        errorMessage = string.Empty;
+        isLoading = true;
+
+        var userMessage = currentMessage;
+        messages.Add(new ChatMessage { Text = userMessage, IsUser = true });
+        currentMessage = string.Empty;
+
+        try
+        {
+            var request = new ChatRequest { Message = userMessage };
+            var response = await Http.PostAsJsonAsync("/api/chat", request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>();
+                if (chatResponse != null)
+                {
+                    messages.Add(new ChatMessage { Text = chatResponse.Reply, IsUser = false });
+                }
+            }
+            else
+            {
+                errorMessage = $"Error: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private class ChatMessage
+    {
+        public string Text { get; set; } = string.Empty;
+        public bool IsUser { get; set; }
+    }
+
+    private class ChatRequest
+    {
+        public string Message { get; set; } = string.Empty;
+    }
+
+    private class ChatResponse
+    {
+        public string Message { get; set; } = string.Empty;
+        public string Reply { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; }
+    }
+}
